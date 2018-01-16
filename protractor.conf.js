@@ -3,7 +3,8 @@
 
 const { SpecReporter } = require('jasmine-spec-reporter');
 
-exports.config = {
+const config = {
+  useAllAngular2AppRoots: true,
   allScriptsTimeout: 120000,
   getPageTimeout: 120000,
   specs: [
@@ -33,3 +34,27 @@ exports.config = {
     jasmine.getEnv().addReporter(new SpecReporter({ acspec: { displayStacktrace: true } }));
   }
 };
+
+if (process.env['TRAVIS']) {
+  const key = require('./scripts/ci/sauce/config');
+  config.sauceUser = process.env['SAUCE_USERNAME'];
+  config.sauceKey = key;
+  config.capabilities = {
+    'browserName': 'chrome',
+    'version': 'latest',
+    'tunnel-identifier': process.env['TRAVIS_JOB_ID'],
+    'build': process.env['TRAVIS_JOB_ID'],
+    'name': 'Nebular E2E Tests',
+
+    // Enables concurrent testing in the Webdriver. Currently runs five e2e files in parallel.
+    'maxInstances': 5,
+    'shardTestFiles': true,
+
+    // By default Saucelabs tries to record the whole e2e run. This can slow down the builds.
+    'recordVideo': true,
+    'recordScreenshots': true
+  };
+}
+
+
+exports.config = config;
